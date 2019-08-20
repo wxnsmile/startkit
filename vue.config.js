@@ -1,10 +1,26 @@
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
   .BundleAnalyzerPlugin
-// const InlineSourcePlugin = require("html-webpack-inline-source-plugin");
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const ExtractTextPlugin = require('extract-text-webpack-plugin')
+const CdnConfig = require('./config/cdn')
+console.log(CdnConfig)
+
+const env = process.env.NODE_ENV
+console.log('deploy_host:', process.env.deploy_host)
+console.log('process.env.api_root:', process.env.api_root)
 
 module.exports = {
-  publicPath: '',
+  // index: 'index.html', //indexPath = index 模板
+  // outputDir: 'dist', // outputDir = assetRoot 打包后文件要存放的路径
+  // publicPath: '/', // publicPath = assetsPublicPath 代表打包后，index.html里面引用资源的的相对地址
+  assetsDir: 'static', // assetsDir=assetsSubDirectory 除了 index.html 之外的静态资源要存放的路径，
+  publicPath:
+    env === 'production'
+      ? (process.env.deploy_host &&
+          process.env.deploy_host.replace(/\/+$/, '')) ||
+        ''
+      : '',
   devServer: {
     contentBase: './dist',
     proxy: {
@@ -14,39 +30,29 @@ module.exports = {
       }
     }
   },
-  configureWebpack: config => {
-    // config.externals = {
-    //   vue: 'Vue',
-    //   'element-ui': 'ELEMENT',
-    //   'vue-router': 'VueRouter',
-    //   vuex: 'Vuex',
-    //   axios: 'axios'
-    // }
-    if (config.mode === 'production') {
-      // 为生产环境修改配置...
-      const plugins = []
-      plugins
-        .push
-        // new UglifyJsPlugin({
-        //   uglifyOptions: {
-        //     compress: {
-        //       warnings: false,
-        //       drop_console: true,
-        //       drop_debugger: false,
-        //       pure_funcs: ['console.log'] //移除console
-        //     }
-        //   },
-        //   sourceMap: false,
-        //   parallel: true
-        // })
-        ()
-      config.plugins = [...config.plugins, ...plugins]
-    } else {
-      // 为开发环境修改配置...
-      config.plugins.push(
-        new CleanWebpackPlugin()
-        //new BundleAnalyzerPlugin()
-      )
-    }
+  chainWebpack: config => {
+    config.externals({
+      vue: 'VUE',
+      'element-ui': 'ELEMENT',
+      'vue-router': 'VueRouter',
+      vuex: 'Vuex',
+      axios: 'axios'
+    })
+  },
+  configureWebpack: {
+    plugins: [
+      new HtmlWebpackPlugin({
+        template: 'index.html',
+        filename: 'index.html',
+        inject: true,
+        CDN: CdnConfig,
+        env: env,
+        minify: {
+          removeComments: true,
+          collapseWhitespace: true,
+          removeAttributeQuotes: true
+        }
+      })
+    ]
   }
 }
