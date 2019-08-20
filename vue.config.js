@@ -1,10 +1,11 @@
+const path = require('path')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
   .BundleAnalyzerPlugin
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
 const CdnConfig = require('./config/cdn')
-console.log(CdnConfig)
 
 const env = process.env.NODE_ENV
 console.log('deploy_host:', process.env.deploy_host)
@@ -31,28 +32,63 @@ module.exports = {
     }
   },
   chainWebpack: config => {
-    config.externals({
-      vue: 'VUE',
-      'element-ui': 'ELEMENT',
-      'vue-router': 'VueRouter',
-      vuex: 'Vuex',
-      axios: 'axios'
-    })
-  },
-  configureWebpack: {
-    plugins: [
-      new HtmlWebpackPlugin({
-        template: 'index.html',
-        filename: 'index.html',
-        inject: true,
-        CDN: CdnConfig,
-        env: env,
-        minify: {
-          removeComments: true,
-          collapseWhitespace: true,
-          removeAttributeQuotes: true
-        }
+    if (process.env.NODE_ENV === 'production') {
+      // 为生产环境修改配置...
+      config.externals({
+        vue: 'Vue',
+        'element-ui': 'Element',
+        'vue-router': 'VueRouter',
+        // vuex: 'Vuex',
+        axios: 'axios'
       })
-    ]
+    } else {
+      // 为开发环境修改配置...
+    }
+  },
+  configureWebpack: config => {
+    config.plugins.push(
+      new CopyWebpackPlugin([
+        {
+          from: path.resolve(__dirname, './static'),
+          to: 'static',
+          ignore: ['.*']
+        }
+      ])
+    )
+    if (process.env.NODE_ENV === 'production') {
+      // 为生产环境修改配置...
+      config.plugins.push(
+        new HtmlWebpackPlugin({
+          template: 'index.html',
+          filename: 'index.html',
+          inject: true,
+          CDN: CdnConfig,
+          env: env,
+          minify: {
+            removeComments: true,
+            collapseWhitespace: true,
+            removeAttributeQuotes: true
+          }
+        })
+      )
+    } else {
+      // 为开发环境修改配置...
+    }
   }
+  // configureWebpack: {
+  //   plugins: [
+  //     new HtmlWebpackPlugin({
+  //       template: 'index.html',
+  //       filename: 'index.html',
+  //       inject: true,
+  //       CDN: CdnConfig,
+  //       env: env,
+  //       minify: {
+  //         removeComments: true,
+  //         collapseWhitespace: true,
+  //         removeAttributeQuotes: true
+  //       }
+  //     })
+  //   ]
+  // }
 }

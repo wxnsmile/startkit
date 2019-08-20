@@ -4,6 +4,8 @@ import router from './router'
 import store from './store'
 import api from './api'
 
+import Element from 'element-ui'
+
 declare module 'vue/types/vue' {
   interface Vue {
     $api: any
@@ -14,6 +16,9 @@ declare module 'vue/types/vue' {
 Vue.prototype.$api = api
 
 Vue.config.productionTip = false
+
+Vue.use(Element)
+
 new Vue({
   router,
   store,
