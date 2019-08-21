@@ -44,6 +44,16 @@ module.exports = {
     } else {
       // 为开发环境修改配置...
     }
+    config.module
+      .rule('js')
+      .include.add('/packages')
+      .end()
+      .use('babel')
+      .loader('babel-loader')
+      .tap(options => {
+        // 修改它的选项...
+        return options
+      })
   },
   configureWebpack: config => {
     config.plugins.push(
@@ -75,20 +85,4 @@ module.exports = {
       // 为开发环境修改配置...
     }
   }
-  // configureWebpack: {
-  //   plugins: [
-  //     new HtmlWebpackPlugin({
-  //       template: 'index.html',
-  //       filename: 'index.html',
-  //       inject: true,
-  //       CDN: CdnConfig,
-  //       env: env,
-  //       minify: {
-  //         removeComments: true,
-  //         collapseWhitespace: true,
-  //         removeAttributeQuotes: true
-  //       }
-  //     })
-  //   ]
-  // }
 }
